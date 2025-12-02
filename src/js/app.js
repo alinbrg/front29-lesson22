@@ -33,24 +33,6 @@ function getAllCountries() {
 		});
 }
 
-async function getAllCountriesAsync() {
-	try {
-		const respone = await fetch("https://borjomi.loremipsum.ge/api/all-users");
-
-		const data = await respone.json();
-
-		// console.log(data.users);
-
-		// render all users in html
-	} catch (err) {
-		console.log("error message: ", err);
-	} finally {
-		// console.log("fetch attempt finished");
-	}
-}
-
-getAllCountriesAsync();
-
 // new Promise((resolve, reject) => {
 // 	const success = false;
 
@@ -80,7 +62,9 @@ const regForm = document.querySelector("#registration-form"),
 	userPhone = regForm.querySelector("#userPhone"),
 	userPersonalID = regForm.querySelector("#userPersonalId"),
 	userZip = regForm.querySelector("#userZipCode"),
-	userGender = regForm.querySelector("[name='gender']:checked");
+	userGender = regForm.querySelector("[name='gender']:checked"),
+	// user id ფორმში, რომელიც გვჭირდება დაედითებისთვის
+	userId = regForm.querySelector("#userId");
 
 const dataExample = {
 	first_name: "test1234",
@@ -91,6 +75,55 @@ const dataExample = {
 	gender: "female",
 	zip_code: "1245",
 };
+function userActions() {
+	// TODO:
+	// 1. ცხრილში ღილაკებზე უნდა მიამაგროთ event listener-ები
+	// 2. იქნება 2 ღილაკი რედაქტირება და წაშლა როგორც "ცხრილი.png" ში ჩანს
+	// 3. id შეგიძლიათ შეინახოთ data-user-id ატრიბუტად ღილაკებზე, data ატრიბუტებზე წვდომა შეგიძლიათ dataset-ის გამოყენებით მაგ:selectedElement.dataset
+	// 4. წაშლა ღილაკზე დაჭერისას უნდა გაიგზავნოს წაშლის მოთხოვნა (deleteUser ფუნქციის მეშვეობით) სერვერზე და გადაეცეს id
+	// 5. ედიტის ღილაკზე უნდა გაიხსნას მოდალი სადაც ფორმი იქნება იმ მონაცემებით შევსებული რომელზეც მოხდა კლიკი. ედიტის ღილაკზე უნდა გამოიძახოთ getSingleUser ფუნქცია და რომ დააბრუნებს ერთი მომხმარებლის დატას (ობიექტს და არა მასივს) const data = await getSingleUser(btn.dataset.userId); ამ ინფორმაციით  უნდა შეივსოს ფორმი და ამის შემდეგ შეგიძლიათ დააედიტოთ ეს ინფორმაცია და ფორმის დასაბმითებისას უნდა მოხდეს updateUser() ფუნქციის გამოძახება, სადაც გადასცემთ განახლებულ იუზერის ობიექტს, გვჭირდება იუზერის აიდიც, რომელიც  მოდალის გახსნისას userId-ის (hidden input არის და ვიზუალურად არ ჩანს) value-ში შეგიძლიათ შეინახოთ.
+}
+
+async function getAllUsersAsync() {
+	try {
+		const respone = await fetch("https://borjomi.loremipsum.ge/api/all-users");
+
+		const data = await respone.json();
+
+		// console.log(data.users);
+
+		// render all users in html
+		// TODO: data.users არის სერვერიდან დაბრუნებული ობიექტების მასივი
+		// TODO: ამ მონაცმების მიხედვით html ში ჩასვით ცხრილი როგორც "ცხრილი.png" შია
+
+		userActions();
+	} catch (err) {
+		console.log("error message: ", err);
+	} finally {
+		// console.log("fetch attempt finished");
+	}
+}
+
+getAllUsersAsync();
+
+async function getSingleUser(id) {
+	try {
+		const response = await fetch(
+			`https://borjomi.loremipsum.ge/api/get-user/${id}`
+		);
+		const data = await response.json();
+		return data;
+	} catch (e) {
+		console.log("Error - ", e);
+	}
+}
+
+function updateUser(userObj) {
+	// მიიღებს დაედითებულ ინფორმაციას და გააგზავნით სერვერზე, ისე როგორც რეგისტრაციისას
+	// TODO დაასრულეთ ფუნქცია
+	//  method: "put",  http://borjomi.loremipsum.ge/api/update-user/${userObj.id}
+	// TODO: ედიტირების შემდეგ ახლიდან წამოიღეთ დატა
+}
 
 function createNewUser(userData) {
 	fetch("https://borjomi.loremipsum.ge/api/register", {
@@ -109,7 +142,7 @@ function createNewUser(userData) {
 			regForm.reset();
 			userFormDialog.close();
 
-			getAllCountriesAsync();
+			getAllUsersAsync();
 		})
 		.catch((err) => {
 			console.error("Error creating user: ", err);
@@ -126,7 +159,7 @@ function deleteUser(id) {
 		.then((res) => res.json())
 		.then((data) => {
 			// console.log("User deleted successfully: ", data);
-			getAllCountriesAsync();
+			getAllUsersAsync();
 		})
 		.catch((err) => {
 			console.error("Error deleting user: ", err);
@@ -146,6 +179,12 @@ regForm.addEventListener("submit", (e) => {
 			gender: regForm.querySelector("[name='gender']:checked").value,
 			zip_code: userZip.value,
 		};
-		createNewUser(userData);
+		// console.log(userData);
+
+		//  TODO: თუ userId.value არის ცარიელი (თავიდან ცარიელია) მაშინ უნდა შევქმნათ  -->  createNewUser(userData);
+		// createNewUser(userData);
+
+		// თუ დაედითებას ვაკეთებთ, ჩვენ ვანიჭებთ მნიშვნელობას userActions ფუნქციაში
+		// TODO: თუ userId.value არის (არაა ცარიელი სტრინგი) მაშინ უნდა დავაედიტოთ, (როცა ფორმს ედითის ღილაკის შემდეგ იუზერის ინფუთით ვავსებთ, ვაედითებთ და ვასაბმითებთ) -->  updateUser(userData);
 	}
 });
